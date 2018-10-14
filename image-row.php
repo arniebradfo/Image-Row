@@ -27,7 +27,7 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
-	die;
+	die; 
 }
 
 function var_dump_pre($mixed = null) {
@@ -79,11 +79,11 @@ class Img_row {
 
 		$count_class = 'img-row--'.count($ids).'-item';
 		$atts['class'] = isset($atts['class']) ? "{$atts['class']} img-row" : 'img-row';
-		$atts['class'] .= ' '.$count_class;
+		$atts['class'] .= " $count_class";
 
 		$output = '<div '; 
 		foreach ($atts as $att => $val) {
-			$output .= $att.'="'.$val.'" ';
+			$output .= "$att=\"$val\"";
 		}
 		$output .= '>';
 
@@ -104,7 +104,7 @@ class Img_row {
 					'height' => $attachment_metadata['height'],
 					'width' => $attachment_metadata['width'],
 					'srcset' => wp_get_attachment_image_srcset($id),
-					'sizes' => '', // TODO
+					// 'sizes' => '', // TODO?
 				]
 			];
 		}
@@ -136,11 +136,12 @@ CSS;
 
 		foreach ($imgs as $id => $img) {
 			$width = ( $img['ratio'] / $ratioSum * 100 );
-			$output .= '<img '; 
-			$output .= "style=\"width:$width%;\"";
+			$output .= '<img'; 
+			$output .= " style=\"width:$width%;\"";
 			foreach ($img['atts'] as $att => $val) {
-				$output .= $att.'="'.$val.'" ';
+				$output .= " $att=\"$val\"";
 			}
+			$output .= " sizes=\"{$width}vw\"";
 			$output .= '/>';
 		}
 
