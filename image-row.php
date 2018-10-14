@@ -8,7 +8,7 @@
  * registers the activation and deactivation functions, and defines a function
  * that starts the plugin.
  *
- * @link              http://example.com
+ * @link              https://codepen.io/arniebradfo/pen/JmrWPY
  * @since             1.0.0
  * @package           img_row
  *
@@ -18,7 +18,7 @@
  * Description:       Align images in rows.
  * Version:           1.0.0
  * Author:            James Bradford
- * Author URI:        http://example.com/
+ * Author URI:        http://bradford.digital/
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       img-row
@@ -41,22 +41,29 @@ class Img_row {
 
 	public function __construct() {
 		add_shortcode( 'imgrow', array(&$this, 'img_row_shortcode') );
-		add_filter('image_send_to_editor', 'picfill_insert_image', 10, 9);
 	}
 
 	public function img_row_shortcode( $atts, $content=null, $tag='' ) {
+		
+		// set the global default
+		// TODO: this should come from a wp option somewhere...
+		if (!isset($GLOBALS['img_row_spacing'])){
+			$GLOBALS['img_row_spacing'] = '1rem';
+		}
 
 		// extract turns the array['vars'] into individual $vars
 		extract( shortcode_atts( array( 
 			'ids' => '',
-			'spacing' => '1'
+			'spacing' => $GLOBALS['img_row_spacing'], // TODO: default  should come from a wp option...
 		), $atts , 'imgrow' ));
 
 		unset($atts['ids']);
 		$ids = explode(',',$ids);
 
 		unset($atts['spacing']);
-		$spacing = floatval($spacing);
+		$GLOBALS['img_row_spacing'] = $spacing;
+		$spacing_val = intval($spacing);
+		$spacing_unit = preg_replace('/[\d.]+/u', '', $spacing);
 
 		// get img
 		// get height and width
@@ -70,7 +77,9 @@ class Img_row {
 		// wp_enqueue_style( 'dummy-handle' );
 		// wp_add_inline_style( 'dummy-handle', '* { color: red; }' );
 
-		$atts['class'] = isset($atts['class']) ? $atts['class'].' img-row' : 'img-row';
+		$count_class = 'img-row--'.count($ids).'-item';
+		$atts['class'] = isset($atts['class']) ? "{$atts['class']} img-row" : 'img-row';
+		$atts['class'] .= ' '.$count_class;
 
 		$output = '<div '; 
 		foreach ($atts as $att => $val) {
@@ -79,7 +88,7 @@ class Img_row {
 		$output .= '>';
 
 		$imgs = [];
-		$ratioSum = $spacing;
+		$ratioSum = 0;
 		foreach ($ids as $i => $id) {
 
 			$attachment_metadata = wp_get_attachment_metadata($id);
@@ -91,7 +100,7 @@ class Img_row {
 				'atts' => [
 					'alt' => get_post_meta($id, '_wp_attachment_image_alt', true),
 					'src' => wp_get_attachment_image_url($id, 'full'), // wp_get_attachment_image_src($id, 'full')['url'],
-					'class' => 'img-row__img img-row__img--id-'.$id,
+					'class' => "img-row__img img-row__img--id-$id",
 					'height' => $attachment_metadata['height'],
 					'width' => $attachment_metadata['width'],
 					'srcset' => wp_get_attachment_image_srcset($id),
@@ -100,40 +109,45 @@ class Img_row {
 			];
 		}
 
-		$style = <<<CSS
-			.img-row{
-				display: flex;
-				flex-wrap: wrap;
-				justify-content: space-between;
-				align-items: stretch;
-			}
-			.img-row__img{
-				height: 100%;
-			}
+		if (!wp_style_is('img-row-css')){
+			$globalStyle = <<<CSS
+.img-row{
+	display: flex;
+	width: 100%;
+}
+.img-row__img{
+	height: 100%;
+	flex: 0 0 auto;
+	margin-right: $spacing ;
+	/* margin-bottom: $spacing ; */
+}
 CSS;
+			for ($i=2; $i < 12; $i++) { 
+				$globalStyle .= "\r\n.img-row--$i-item";
+				$padding = $spacing_val*($i-1) . $spacing_unit;
+				$globalStyle .= "{ padding-right: $padding; test:here; }";
+			}
+			wp_register_style(   'img-row-css', false );
+			wp_enqueue_style(    'img-row-css' );
+			wp_add_inline_style( 'img-row-css', $globalStyle );
+
+		}
+
 
 		foreach ($imgs as $id => $img) {
-			$style .= '.img-row__img--id-'.$id.'{ width:' .( $img['ratio'] / $ratioSum * 100 ). '%;}';
+			$width = ( $img['ratio'] / $ratioSum * 100 );
 			$output .= '<img '; 
-			$output .= 'style="'.''.'"';
+			$output .= "style=\"width:$width%;\"";
 			foreach ($img['atts'] as $att => $val) {
 				$output .= $att.'="'.$val.'" ';
 			}
 			$output .= '/>';
 		}
-		$output .= '<style>' . $style . '</style>';
-		
-		// $output .= do_shortcode($content);
 
 		$output .= '</div>';
 
 		return $output;
 
-	}
-
-	// altering media uploader output into the post editor - outputs shortcode instead of image
-	private function picfill_insert_image($html, $id, $caption, $title, $align, $url) {
-    	return "[picfill imageid='$id' sizeXS='0' sizeS='250' sizeM='500' sizeL='750' sizeXL='1000' size2XL='1500' size3XL='2000' size4XL='3000' ]";
 	}
 
 }
