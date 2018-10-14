@@ -142,6 +142,10 @@ CSS;
 				$output .= " $att=\"$val\"";
 			}
 			$output .= " sizes=\"{$width}vw\"";
+			// TODO: better sizes="" attribute
+			// $output .= "sizes=\"(min-width: {$content_width}px) ".($content_width / count($ids))."px, {$width}vw\"";
+			// https://wycks.wordpress.com/2013/02/14/why-the-content_width-wordpress-global-kinda-sucks/
+			// https://bitsofco.de/the-srcset-and-sizes-attributes/
 			$output .= '/>';
 		}
 
