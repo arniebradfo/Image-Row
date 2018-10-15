@@ -4,7 +4,7 @@
  * Image Row
  *
  * @link              https://codepen.io/arniebradfo/pen/JmrWPY
- * @since             1.0.0
+ * @since             1.1.0
  * @package           img_row
  *
  * @wordpress-plugin
