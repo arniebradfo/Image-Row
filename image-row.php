@@ -24,7 +24,8 @@
   * TODO:
   * - replace and reimplement gallery shortcode
   * - media query options
-  * - spacing and content width global
+  * - break options?
+  * - global options: spacing, content_width, override gallery
   * - gutenberg?
   * - release
   */
@@ -39,12 +40,15 @@ function var_dump_pre($mixed = null) {
 	var_dump($mixed);
 	echo '</pre>';
 	return null;
-  }
+}
+
 
 class Img_row {
 
 	public function __construct() {
-		add_shortcode( 'imgrow', array(&$this, 'img_row_shortcode') );
+		remove_shortcode('gallery');
+		add_shortcode( 'gallery', array(&$this, 'img_row_shortcode') );
+		add_shortcode( 'imgrow',  array(&$this, 'img_row_shortcode') );
 	}
 
 	public function img_row_shortcode( $atts, $content=null, $tag='' ) {
@@ -57,8 +61,15 @@ class Img_row {
 
 		// extract turns the array['vars'] into individual $vars
 		extract( shortcode_atts( array( 
-			'ids' => '',
 			'spacing' => $GLOBALS['img_row_spacing'], // TODO: default should come from a wp option...
+			// 'media' => ??? // how to handle this?
+
+			// from [gallery/] shortcode // TODO: hook these up
+			'ids' => '', // list of img ids
+            // 'link' => 'file' // 'file' | 'link' | <empty string> (for linking to attachment page)
+            // 'columns' => '3', // [1-9] as string
+            // 'size' => 'full'
+            // 'orderby' => 'post__in', // 'post__in' | 'rand'
 		), $atts , 'imgrow' ));
 
 		unset($atts['ids']);
@@ -70,7 +81,7 @@ class Img_row {
 		$spacing_unit = preg_replace('/[\d.]+/u', '', $spacing);
 
 
-		if (!wp_style_is('img-row-css')){
+		if (!wp_style_is('img-row-style')){
 			$globalStyle = <<<CSS
 .img-row{
 	display: flex;
@@ -83,7 +94,10 @@ class Img_row {
 	/* margin-bottom: $spacing ; */
 }
 CSS;
-			for ($i=2; $i < 12; $i++) { // do we need more than 12?
+			// gallery 
+			for ($i=2; $i < 9; $i++) {
+				// do we need more than 9? 
+				// [gallery columns="9"] only goes to nine
 				$style .= "\r\n.img-row--$i-item";
 				$padding = $spacing_val*($i-1) . $spacing_unit;
 				$style .= "{ padding-right: $padding; }";
@@ -151,5 +165,5 @@ CSS;
 
 }
 
-// run it
+// run it!
 new Img_row();
