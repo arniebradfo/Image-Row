@@ -82,7 +82,7 @@ class Img_row {
 
 
 		if (!wp_style_is('img-row-style')){
-			$globalStyle = <<<CSS
+			$style = <<<CSS
 .img-row{
 	display: flex;
 	width: 100%;
