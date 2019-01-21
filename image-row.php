@@ -51,13 +51,15 @@ class Img_row {
 		add_shortcode( 'imgrow',  array(&$this, 'img_row_shortcode') );
 	}
 
-	public function img_row_shortcode( $atts, $content=null, $tag='' ) {
+	public function img_row_shortcode( $atts=[], $content=null, $tag='' ) {
 		
 		// set the global default
 		// TODO: this should come from a wp option somewhere...
 		if (!isset($GLOBALS['img_row_spacing'])){
 			$GLOBALS['img_row_spacing'] = '0.5rem';
 		}
+
+		if (is_string($atts)) $atts = [];
 
 		// extract turns the array['vars'] into individual $vars
 		extract( shortcode_atts( array( 
@@ -72,6 +74,8 @@ class Img_row {
             // 'orderby' => 'post__in', // 'post__in' | 'rand'
 		), $atts , 'imgrow' ));
 
+		// if (strlen($ids) < 1) $ids = '1,2,3';
+		
 		unset($atts['ids']);
 		$ids = explode(',',$ids);
 
@@ -121,6 +125,8 @@ CSS;
 		$imgs = [];
 		$ratioSum = 0;
 		foreach ($ids as $i => $id) {
+
+			if (!wp_get_attachment_url($id)) continue;
 
 			$attachment_metadata = wp_get_attachment_metadata($id);
 			$ratio = $attachment_metadata['width'] / $attachment_metadata['height'];
