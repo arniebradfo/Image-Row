@@ -9,9 +9,10 @@
  *
  * @wordpress-plugin
  * Plugin Name:       Image Row
- * Plugin URI:        http://example.com/img-row-uri/
+ * Plugin URI:        https://github.com/arniebradfo/Image-Row
+ * GitHub Plugin URI: https://github.com/arniebradfo/Image-Row
  * Description:       Align images in rows.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Author:            James Bradford
  * Author URI:        http://bradford.digital/
  * License:           GPL-2.0+
