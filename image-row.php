@@ -11,6 +11,7 @@
  * Plugin Name:       Image Row
  * Plugin URI:        https://github.com/arniebradfo/Image-Row
  * GitHub Plugin URI: https://github.com/arniebradfo/Image-Row
+ * GitHub Branch:     master
  * Description:       Align images in rows.
  * Version:           1.1.0
  * Author:            James Bradford
@@ -23,7 +24,7 @@
 
  /**
   * TODO:
-  * - replace and reimplement gallery shortcode
+  * - replace and re-implement gallery shortcode
   * - media query options
   * - break options?
   * - global options: spacing, content_width, override gallery
