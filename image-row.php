@@ -56,17 +56,19 @@ class Img_row {
 	public function img_row_shortcode( $atts=[], $content=null, $tag='' ) {
 		
 		// set the global default
-		// TODO: this should come from a wp option somewhere...
-		if (!isset($GLOBALS['img_row_spacing'])){
+		// TODO: These should come from a wp option somewhere...
+		if (!isset($GLOBALS['img_row_spacing']))
 			$GLOBALS['img_row_spacing'] = '0.5rem';
-		}
+		if (!isset($GLOBALS['img_row_tag']))
+			$GLOBALS['img_row_tag'] = 'p';
 
 		if (is_string($atts)) $atts = [];
 
 		// extract turns the array['vars'] into individual $vars
 		extract( shortcode_atts( array( 
 			'spacing' => $GLOBALS['img_row_spacing'], // TODO: default should come from a wp option...
-			// 'media' => ??? // how to handle this?
+			'tag' => $GLOBALS['img_row_tag'], // how to handle this?
+			// 'media' => '???', // TODO: @media query - how to handle this?
 
 			// from [gallery/] shortcode // TODO: hook these up
 			'ids' => '', // list of img ids
@@ -78,14 +80,12 @@ class Img_row {
 
 		// if (strlen($ids) < 1) $ids = '1,2,3';
 		
-		unset($atts['ids']);
 		$ids = explode(',',$ids);
-
-		unset($atts['spacing']);
+		
+		// What does this do?
 		$GLOBALS['img_row_spacing'] = $spacing;
 		$spacing_val = floatval($spacing);
 		$spacing_unit = preg_replace('/[\d.]+/u', '', $spacing);
-
 
 		if (!wp_style_is('img-row-style')){
 			$style = <<<CSS
@@ -100,6 +100,7 @@ class Img_row {
 	/* margin-bottom: $spacing ; */
 }
 CSS;
+
 			// gallery 
 			for ($i=2; $i < 9; $i++) {
 				// do we need more than 9? 
@@ -118,7 +119,15 @@ CSS;
 		$atts['class'] = isset($atts['class']) ? "{$atts['class']} img-row" : 'img-row';
 		$atts['class'] .= " $count_class";
 
-		$output = '<div '; 
+		// unset $atts we don't want on our base tag
+		unset(
+			$atts['ids'], 
+			$atts['spacing'],
+			$atts['tag']
+		);
+
+		// generate base tag with any extra atts
+		$output = "<$tag "; 
 		foreach ($atts as $att => $val) {
 			$output .= "$att=\"$val\"";
 		}
@@ -165,7 +174,7 @@ CSS;
 			$output .= '/>';
 		}
 
-		$output .= '</div>';
+		$output .= "</$tag>";
 
 		return $output;
 
