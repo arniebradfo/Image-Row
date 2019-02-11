@@ -53,6 +53,39 @@ class Img_row {
 		add_shortcode( 'imgrow',  array(&$this, 'img_row_shortcode') );
 	}
 
+	public function find_svg_dimensions( $svgUrl ) {
+
+		$svgString = file_get_contents($svgUrl);
+		$svgElement = simplexml_load_string($svgString);
+
+		// do a return check here to see if height and width even exist
+		// if (check) return false;
+
+		$height = intval($svgElement['height']);
+		$width = intval($svgElement['width']);
+
+		if ( ! isset($height) || ! isset($width) ) {
+			$viewBox = 	explode(' ', $svgElement['viewBox']);
+			
+			// check if $viewBox is set
+			if ( ! isset($viewBox) ) return false;
+
+			// https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/viewBox
+			$minX = intval($viewBox[0]);
+			$minY = intval($viewBox[1]);
+			$width = intval($viewBox[2]);
+			$height = intval($viewBox[3]);
+
+			$width = $width - $minX;
+			$height = $height - $minY;
+		}
+
+		return array(
+			"height" => $height,
+			"width"  => $width
+		);
+	}
+
 	public function img_row_shortcode( $atts=[], $content=null, $tag='' ) {
 		
 		// set the global default
@@ -140,7 +173,17 @@ CSS;
 			if (!wp_get_attachment_url($id)) continue;
 
 			$attachment_metadata = wp_get_attachment_metadata($id);
-			$ratio = $attachment_metadata['width'] / $attachment_metadata['height'];
+
+			if ( strpos( get_post_mime_type($id), 'svg' ) !== false ) {
+				$svgHeightAndWidth = $this->find_svg_dimensions(wp_get_attachment_url($id));
+				$height = $svgHeightAndWidth['height'];
+				$width = $svgHeightAndWidth['width'];
+			} else {
+				$height = $attachment_metadata['height'];
+				$width = $attachment_metadata['width'];
+			}
+
+			$ratio = $width / $height;
 			$ratioSum += $ratio;
 
 			$imgs[$id] = [
@@ -149,8 +192,8 @@ CSS;
 					'alt' => get_post_meta($id, '_wp_attachment_image_alt', true),
 					'src' => wp_get_attachment_image_url($id, 'full'), // wp_get_attachment_image_src($id, 'full')['url'],
 					'class' => "img-row__img img-row__img--id-$id",
-					'height' => $attachment_metadata['height'],
-					'width' => $attachment_metadata['width'],
+					'height' => $height,
+					'width' => $width,
 					'srcset' => wp_get_attachment_image_srcset($id),
 					// 'sizes' => '', // TODO?
 				]
