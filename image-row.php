@@ -4,7 +4,7 @@
  * Image Row
  *
  * @link              https://codepen.io/arniebradfo/pen/JmrWPY
- * @since             1.1.0
+ * @since             1.2.0
  * @package           img_row
  *
  * @wordpress-plugin
@@ -13,13 +13,23 @@
  * GitHub Plugin URI: https://github.com/arniebradfo/Image-Row
  * GitHub Branch:     master
  * Description:       Align images in rows.
- * Version:           1.1.0
+ * Version:           1.2.0
  * Author:            James Bradford
  * Author URI:        http://bradford.digital/
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       img-row
  * Domain Path:       /languages
+ */
+
+
+/**
+ * Attributes
+ * @param ids = array of media ids
+ * @param spacing = css unit spacing: 0.5em is default, same 
+ * @param tag = what tag is it wrapped in? <p> is default
+ * @param contentwidth = the max width of the row. default is the $content_width global. 0 is infinity
+ * all the gallery attributes, in the future
  */
 
  /**
@@ -30,6 +40,7 @@
   * - global options: spacing, content_width, override gallery
   * - gutenberg?
   * - release
+  * - percentage doesn't work on spacing because the sizes aren't calculated from the same reference
   */
 
 // If this file is called directly, abort.
@@ -37,13 +48,12 @@ if ( ! defined( 'WPINC' ) ) {
 	die; 
 }
 
-function var_dump_pre($mixed = null) {
+function var_dump_pre($mixed = null) { // for debug
 	echo '<pre>';
 	var_dump($mixed);
 	echo '</pre>';
 	return null;
 }
-
 
 class Img_row {
 
@@ -90,10 +100,14 @@ class Img_row {
 		
 		// set the global default
 		// TODO: These should come from a wp option somewhere...
-		if (!isset($GLOBALS['img_row_spacing']))
+		// TODO: percentage doesn't work on spacing because the sizes aren't calculated from the same reference
+		if (empty($GLOBALS['img_row_spacing']))
 			$GLOBALS['img_row_spacing'] = '0.5rem';
-		if (!isset($GLOBALS['img_row_tag']))
+		if (empty($GLOBALS['img_row_tag']))
 			$GLOBALS['img_row_tag'] = 'p';
+		
+		// https://wycks.wordpress.com/2013/02/14/why-the-content_width-wordpress-global-kinda-sucks/
+		global $content_width; // we need this for the img sizes attribute
 
 		if (is_string($atts)) $atts = [];
 
@@ -101,22 +115,24 @@ class Img_row {
 		extract( shortcode_atts( array( 
 			'spacing' => $GLOBALS['img_row_spacing'], // TODO: default should come from a wp option...
 			'tag' => $GLOBALS['img_row_tag'], // how to handle this?
+			'contentwidth' => $content_width,
 			// 'media' => '???', // TODO: @media query - how to handle this?
 
 			// from [gallery/] shortcode // TODO: hook these up
-			'ids' => '', // list of img ids
-            // 'link' => 'file' // 'file' | 'link' | <empty string> (for linking to attachment page)
-            // 'columns' => '3', // [1-9] as string
+			'ids' => '',                    // list of img ids //TODO:  what happens if this is empty?
+            // 'link' => 'file'             // 'file' | 'link' | <empty string> (for linking to attachment page)
+            // 'columns' => '3',            // [1-9] as string
             // 'size' => 'full'
-            // 'orderby' => 'post__in', // 'post__in' | 'rand'
+            // 'orderby' => 'post__in',     // 'post__in' | 'rand'
 		), $atts , 'imgrow' ));
 
 		// if (strlen($ids) < 1) $ids = '1,2,3';
 		
 		$ids = explode(',',$ids);
-		
+
 		// What does this do?
 		$GLOBALS['img_row_spacing'] = $spacing;
+		$GLOBALS['img_row_tag'] = $tag;
 		$spacing_val = floatval($spacing);
 		$spacing_unit = preg_replace('/[\d.]+/u', '', $spacing);
 
@@ -195,25 +211,25 @@ CSS;
 					'height' => $height,
 					'width' => $width,
 					'srcset' => wp_get_attachment_image_srcset($id),
-					// 'sizes' => '', // TODO?
 				]
 			];
 		}
 
 		foreach ($imgs as $id => $img) {
-			$width = ( $img['ratio'] / $ratioSum * 100 );
+			$width_percent = ( $img['ratio'] / $ratioSum * 100 );
+			$width_pixels = $width_percent/100 * $contentwidth; 
+
+			$img['atts']['style'] = "width:$width_percent%;";
+			
+			// https://bitsofco.de/the-srcset-and-sizes-attributes/
+			$img['atts']['sizes'] = ($contentwidth < 1) ? 
+				"{$width_percent}vw" :
+				"(min-width: {$contentwidth}px) {$width_pixels}px, {$width_percent}vw" ;
+
 			$output .= '<img'; 
-			$output .= " style=\"width:$width%;\"";
 			foreach ($img['atts'] as $att => $val) {
 				$output .= " $att=\"$val\"";
 			}
-			$output .= " sizes=\"{$width}vw\"";
-			// TODO: better sizes="" attribute
-			// add a content-width option
-			// $output .= "sizes=\"(min-width: {$content_width}px) ".($content_width / count($ids))."px, {$width}vw\"";
-			// https://wycks.wordpress.com/2013/02/14/why-the-content_width-wordpress-global-kinda-sucks/
-			// https://bitsofco.de/the-srcset-and-sizes-attributes/
-			// content width doesn't come from here...
 			$output .= '/>';
 		}
 
