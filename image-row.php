@@ -4,7 +4,7 @@
  * Image Row
  *
  * @link              https://codepen.io/arniebradfo/pen/JmrWPY
- * @since             1.2.0
+ * @since             1.2.1
  * @package           img_row
  *
  * @wordpress-plugin
@@ -13,7 +13,7 @@
  * GitHub Plugin URI: https://github.com/arniebradfo/Image-Row
  * GitHub Branch:     master
  * Description:       Align images in rows.
- * Version:           1.2.0
+ * Version:           1.2.1
  * Author:            James Bradford
  * Author URI:        http://bradford.digital/
  * License:           GPL-2.0+
@@ -48,12 +48,12 @@ if ( ! defined( 'WPINC' ) ) {
 	die; 
 }
 
-function var_dump_pre($mixed = null) { // for debug
-	echo '<pre>';
-	var_dump($mixed);
-	echo '</pre>';
-	return null;
-}
+// function var_dump_pre($mixed = null) { // for debug
+// 	echo '<pre>';
+// 	var_dump($mixed);
+// 	echo '</pre>';
+// 	return null;
+// }
 
 class Img_row {
 
@@ -61,8 +61,15 @@ class Img_row {
 		remove_shortcode('gallery');
 		add_shortcode( 'gallery', array(&$this, 'img_row_shortcode') );
 		add_shortcode( 'imgrow',  array(&$this, 'img_row_shortcode') );
+
+		add_action('wp_enqueue_scripts', array(&$this, 'imgrow_enqueue_scripts' ));
+	
 	}
 
+	public function imgrow_enqueue_scripts () {
+		wp_enqueue_style( 'img-row-style', plugin_dir_url(__FILE__).'image-row.css' );
+	}
+	
 	public function find_svg_dimensions( $svgUrl ) {
 
 		$svgString = file_get_contents($svgUrl);
@@ -136,20 +143,9 @@ class Img_row {
 		$spacing_val = floatval($spacing);
 		$spacing_unit = preg_replace('/[\d.]+/u', '', $spacing);
 
-		if (!wp_style_is('img-row-style')){
-			$style = <<<CSS
-.img-row{
-	display: flex;
-	width: 100%;
-}
-.img-row__img{
-	height: 100%;
-	flex: 0 0 auto;
-	margin-right: $spacing ;
-	/* margin-bottom: $spacing ; */
-}
-CSS;
-
+		if (!wp_style_is('img-row-inline-style')){
+			$style = ".img-row__img{ margin-right: $spacing ; /* margin-bottom: $spacing ; */ }";
+			
 			// gallery 
 			for ($i=2; $i < 9; $i++) {
 				// do we need more than 9? 
@@ -158,9 +154,9 @@ CSS;
 				$padding = $spacing_val*($i-1) . $spacing_unit;
 				$style .= "{ padding-right: $padding; }";
 			}
-			wp_register_style(   'img-row-style', false );
-			wp_enqueue_style(    'img-row-style' );
-			wp_add_inline_style( 'img-row-style', $style );
+			wp_register_style(   'img-row-inline-style', false );
+			wp_enqueue_style(    'img-row-inline-style' );
+			wp_add_inline_style( 'img-row-inline-style', $style );
 
 		}
 
