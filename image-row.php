@@ -4,7 +4,7 @@
  * Image Row
  *
  * @link              https://codepen.io/arniebradfo/pen/JmrWPY
- * @since             1.2.1
+ * @since             1.0.0
  * @package           img_row
  *
  * @wordpress-plugin
@@ -13,7 +13,7 @@
  * GitHub Plugin URI: https://github.com/arniebradfo/Image-Row
  * GitHub Branch:     master
  * Description:       Align images in rows.
- * Version:           1.2.1
+ * Version:           1.2.2
  * Author:            James Bradford
  * Author URI:        http://bradford.digital/
  * License:           GPL-2.0+
