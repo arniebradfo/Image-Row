@@ -13,7 +13,7 @@
  * GitHub Plugin URI: https://github.com/arniebradfo/Image-Row
  * GitHub Branch:     master
  * Description:       Align images in rows.
- * Version:           1.2.2
+ * Version:           1.2.3
  * Author:            James Bradford
  * Author URI:        http://bradford.digital/
  * License:           GPL-2.0+
@@ -22,26 +22,6 @@
  * Domain Path:       /languages
  */
 
-
-/**
- * Attributes
- * @param ids = array of media ids
- * @param spacing = css unit spacing: 0.5em is default, same 
- * @param tag = what tag is it wrapped in? <p> is default
- * @param contentwidth = the max width of the row. default is the $content_width global. 0 is infinity
- * all the gallery attributes, in the future
- */
-
- /**
-  * TODO:
-  * - replace and re-implement gallery shortcode
-  * - media query options
-  * - break options?
-  * - global options: spacing, content_width, override gallery
-  * - gutenberg?
-  * - release
-  * - percentage doesn't work on spacing because the sizes aren't calculated from the same reference
-  */
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
@@ -122,7 +102,8 @@ class Img_row {
 		extract( shortcode_atts( array( 
 			'spacing' => $GLOBALS['img_row_spacing'], // TODO: default should come from a wp option...
 			'tag' => $GLOBALS['img_row_tag'], // how to handle this?
-			'contentwidth' => $content_width,
+			'maxwidth' => $content_width,
+			'contentclass' => '',
 			// 'media' => '???', // TODO: @media query - how to handle this?
 
 			// from [gallery/] shortcode // TODO: hook these up
@@ -132,8 +113,6 @@ class Img_row {
             // 'size' => 'full'
             // 'orderby' => 'post__in',     // 'post__in' | 'rand'
 		), $atts , 'imgrow' ));
-
-		// if (strlen($ids) < 1) $ids = '1,2,3';
 		
 		$ids = explode(',',$ids);
 
@@ -168,8 +147,11 @@ class Img_row {
 		unset(
 			$atts['ids'], 
 			$atts['spacing'],
-			$atts['tag']
+			$atts['tag'],
+			$atts['maxwidth'],
+			$atts['contentclass']
 		);
+		
 
 		// generate base tag with any extra atts
 		$output = "<$tag "; 
@@ -203,7 +185,7 @@ class Img_row {
 				'atts' => [
 					'alt' => get_post_meta($id, '_wp_attachment_image_alt', true),
 					'src' => wp_get_attachment_image_url($id, 'full'), // wp_get_attachment_image_src($id, 'full')['url'],
-					'class' => "img-row__img img-row__img--id-$id",
+					'class' => "$contentclass img-row__img img-row__img--id-$id",
 					'height' => $height,
 					'width' => $width,
 					'srcset' => wp_get_attachment_image_srcset($id),
@@ -213,14 +195,14 @@ class Img_row {
 
 		foreach ($imgs as $id => $img) {
 			$width_percent = ( $img['ratio'] / $ratioSum * 100 );
-			$width_pixels = $width_percent/100 * $contentwidth; 
+			$width_pixels = $width_percent/100 * $maxwidth; 
 
 			$img['atts']['style'] = "width:$width_percent%;";
 			
 			// https://bitsofco.de/the-srcset-and-sizes-attributes/
-			$img['atts']['sizes'] = ($contentwidth < 1) ? 
+			$img['atts']['sizes'] = ($maxwidth < 1) ? 
 				"{$width_percent}vw" :
-				"(min-width: {$contentwidth}px) {$width_pixels}px, {$width_percent}vw" ;
+				"(min-width: {$maxwidth}px) {$width_pixels}px, {$width_percent}vw" ;
 
 			$output .= '<img'; 
 			foreach ($img['atts'] as $att => $val) {
