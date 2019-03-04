@@ -13,7 +13,7 @@
  * GitHub Plugin URI: https://github.com/arniebradfo/Image-Row
  * GitHub Branch:     master
  * Description:       Align images in rows.
- * Version:           1.2.4
+ * Version:           1.2.5
  * Author:            James Bradford
  * Author URI:        http://bradford.digital/
  * License:           GPL-2.0+
