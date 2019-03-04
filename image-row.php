@@ -13,7 +13,7 @@
  * GitHub Plugin URI: https://github.com/arniebradfo/Image-Row
  * GitHub Branch:     master
  * Description:       Align images in rows.
- * Version:           1.2.3
+ * Version:           1.2.4
  * Author:            James Bradford
  * Author URI:        http://bradford.digital/
  * License:           GPL-2.0+
@@ -42,13 +42,13 @@ class Img_row {
 		add_shortcode( 'gallery', array(&$this, 'img_row_shortcode') );
 		add_shortcode( 'imgrow',  array(&$this, 'img_row_shortcode') );
 
-		add_action('wp_enqueue_scripts', array(&$this, 'imgrow_enqueue_scripts' ));
+		// add_action('wp_enqueue_scripts', array(&$this, 'imgrow_enqueue_scripts' ));
 	
 	}
 
-	public function imgrow_enqueue_scripts () {
-		wp_enqueue_style( 'img-row-style', plugin_dir_url(__FILE__).'image-row.css' );
-	}
+	// public function imgrow_enqueue_scripts () {
+	// 	// wp_enqueue_style( 'img-row-style', plugin_dir_url(__FILE__).'image-row.css' );
+	// }
 	
 	public function find_svg_dimensions( $svgUrl ) {
 
@@ -108,10 +108,10 @@ class Img_row {
 
 			// from [gallery/] shortcode // TODO: hook these up
 			'ids' => '',                    // list of img ids //TODO:  what happens if this is empty?
-            // 'link' => 'file'             // 'file' | 'link' | <empty string> (for linking to attachment page)
-            // 'columns' => '3',            // [1-9] as string
-            // 'size' => 'full'
-            // 'orderby' => 'post__in',     // 'post__in' | 'rand'
+            'link' => 'file',             // 'file' | 'link' | <empty string> (for linking to attachment page)
+            'columns' => '3',            // [1-9] as string
+            'size' => 'full',
+            'orderby' => 'post__in'     // 'post__in' | 'rand'
 		), $atts , 'imgrow' ));
 		
 		$ids = explode(',',$ids);
@@ -122,7 +122,10 @@ class Img_row {
 		$spacing_val = floatval($spacing);
 		$spacing_unit = preg_replace('/[\d.]+/u', '', $spacing);
 
-		if (!wp_style_is('img-row-inline-style')){
+		
+		if (!wp_style_is('img-row-style')){
+			wp_enqueue_style( 'img-row-style', plugin_dir_url(__FILE__).'image-row.css' );
+			
 			$style = ".img-row__img{ margin-right: $spacing ; /* margin-bottom: $spacing ; */ }";
 			
 			// gallery 
@@ -133,9 +136,9 @@ class Img_row {
 				$padding = $spacing_val*($i-1) . $spacing_unit;
 				$style .= "{ padding-right: $padding; }";
 			}
-			wp_register_style(   'img-row-inline-style', false );
-			wp_enqueue_style(    'img-row-inline-style' );
-			wp_add_inline_style( 'img-row-inline-style', $style );
+			// wp_register_style(   'img-row-inline-style', false);
+			// wp_enqueue_style(    'img-row-inline-style', false);
+			wp_add_inline_style( 'img-row-style', $style );
 
 		}
 
@@ -143,20 +146,23 @@ class Img_row {
 		$atts['class'] = isset($atts['class']) ? "{$atts['class']} img-row" : 'img-row';
 		$atts['class'] .= " $count_class";
 
-		// unset $atts we don't want on our base tag
+		// unset all the $atts we don't want on our base tag
 		unset(
-			$atts['ids'], 
 			$atts['spacing'],
 			$atts['tag'],
 			$atts['maxwidth'],
-			$atts['contentclass']
+			$atts['contentclass'],
+			$atts['ids'], 
+			$atts['link'],
+			$atts['columns'],
+			$atts['size'],
+			$atts['orderby']
 		);
-		
 
 		// generate base tag with any extra atts
 		$output = "<$tag "; 
 		foreach ($atts as $att => $val) {
-			$output .= "$att=\"$val\"";
+			$output .= "$att=\"$val\" ";
 		}
 		$output .= '>';
 
@@ -200,12 +206,15 @@ class Img_row {
 			$img['atts']['style'] = "width:$width_percent%;";
 			
 			// https://bitsofco.de/the-srcset-and-sizes-attributes/
-			$img['atts']['sizes'] = ($maxwidth < 1) ? 
+			if ( !empty($img['atts']['srcset']) ) {
+				$img['atts']['sizes'] = ($maxwidth < 1) ? 
 				"{$width_percent}vw" :
 				"(min-width: {$maxwidth}px) {$width_pixels}px, {$width_percent}vw" ;
+			}
 
 			$output .= '<img'; 
 			foreach ($img['atts'] as $att => $val) {
+				if (empty($val) && $att != 'alt') continue;
 				$output .= " $att=\"$val\"";
 			}
 			$output .= '/>';
