@@ -1,12 +1,12 @@
 === Image Row ===
-Contributors: arniebradfo
-Donate link: https://www.paypal.me/arniebradfo
-Tags: image, shortcode, row, rows, gallery
-Requires at least: 4.0
-Tested up to: 5.1
-Stable tag: 1.2.5
-License: GPLv2 or later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Contributors:         arniebradfo
+Donate link:          https://www.paypal.me/arniebradfo
+Tags:                 image, shortcode, row, rows, gallery
+Requires at least:    4.0
+Tested up to:         5.1
+Stable tag:           1.2.6
+License:              GPLv2 or later
+License URI:          https://www.gnu.org/licenses/gpl-2.0.html
 
 Puts images into rows.
 
