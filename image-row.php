@@ -83,7 +83,7 @@ class Img_row {
 		);
 	}
 
-	public function img_row_shortcode( $atts=[], $content=null, $tag='' ) {
+	public function img_row_shortcode( $atts=array(), $content=null, $tag='' ) {
 		
 		// set the global default
 		// TODO: These should come from a wp option somewhere...
@@ -96,7 +96,7 @@ class Img_row {
 		// https://wycks.wordpress.com/2013/02/14/why-the-content_width-wordpress-global-kinda-sucks/
 		global $content_width; // we need this for the img sizes attribute
 
-		if (is_string($atts)) $atts = [];
+		if (is_string($atts)) $atts = array();
 
 		// extract turns the array['vars'] into individual $vars
 		extract( shortcode_atts( array( 
@@ -166,7 +166,7 @@ class Img_row {
 		}
 		$output .= '>';
 
-		$imgs = [];
+		$imgs = array();
 		$ratioSum = 0;
 		foreach ($ids as $i => $id) {
 
@@ -186,17 +186,17 @@ class Img_row {
 			$ratio = $width / $height;
 			$ratioSum += $ratio;
 
-			$imgs[$id] = [
+			$imgs[$id] = array(
 				'ratio' => $ratio,
-				'atts' => [
+				'atts' => array(
 					'alt' => get_post_meta($id, '_wp_attachment_image_alt', true),
 					'src' => wp_get_attachment_image_url($id, 'full'), // wp_get_attachment_image_src($id, 'full')['url'],
 					'class' => "$contentclass img-row__img img-row__img--id-$id",
 					'height' => $height,
 					'width' => $width,
 					'srcset' => wp_get_attachment_image_srcset($id),
-				]
-			];
+				)
+			);
 		}
 
 		foreach ($imgs as $id => $img) {
